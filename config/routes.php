@@ -45,6 +45,14 @@ use Cake\Routing\Route\DashedRoute;
  */
 Router::defaultRouteClass(DashedRoute::class);
 
+Router::scope(
+    '/articles',
+    ['controller' => 'Articles'],
+    function($routes) {
+        $routes->connect('/tagged/*', ['action' => 'tags']);
+    }
+);
+
 Router::scope('/', function (RouteBuilder $routes) {
     // Register scoped middleware for in scopes.
     $routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
