@@ -55,6 +55,9 @@ class ArticlesController extends AppController
     }
     // タグのリストを取得
     $tags = $this->Articles->Tags->find('list');
+
+    // eval(\Psy\sh());
+
     // ビューコンテキストにtagsをセット
     $this->set('tags', $tags);
 
