@@ -1,8 +1,6 @@
 <?php
 /**
- * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- *
+
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
  * Redistributions of files must retain the above copyright notice.
@@ -46,10 +44,26 @@ class AppController extends Controller
         ]);
         $this->loadComponent('Flash');
 
-        /*
-         * Enable the following component for recommended CakePHP security settings.
-         * see https://book.cakephp.org/3/en/controllers/components/security.html
-         */
-        //$this->loadComponent('Security');
+        $this->loadComponent('Auth', [
+            'authenticate' => [
+                'Form' => [
+                    'fields' => [
+                        'username' => 'email',
+                        'password' => 'password'
+                    ]
+                ]
+            ],
+            'loginAction' => [
+                'controller' => 'Users',
+                'action' => 'login'
+            ],
+            // コントローラーで isAuthorized を使用します
+            'authorize' => ['Controller'],
+            // 未認証の場合、直前のページに戻します
+            'unauthorizedRedirect' => $this->referer()
+        ]);
+        // display アクションを許可して、PagesControllerが引き続き
+        // 動作するようにします。また、読み取り専用のアクションを有効にします。
+        $this->Auth->allow(['display', 'view', 'index']);
     }
 }
