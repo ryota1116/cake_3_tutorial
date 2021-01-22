@@ -114,4 +114,13 @@ class UsersController extends AppController
             $this->Flash->error('ユーザ名またはパスワードが不正です');
         }
     }
+
+    public function initialize() {
+        parent::initialize();
+        $this->Auth->allow(['logout', 'add']);
+    }
+    public function logout() {
+        $this->Flash->success('ログアウトしました');
+        return $this->redirect($this->Auth->logout());
+    }
 }
