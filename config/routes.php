@@ -22,42 +22,18 @@ use Cake\Routing\RouteBuilder;
 use Cake\Routing\Router;
 use Cake\Routing\Route\DashedRoute;
 
-/*
- * The default class to use for all routes
- *
- * The following route classes are supplied with CakePHP and are appropriate
- * to set as the default:
- *
- * - Route
- * - InflectedRoute
- * - DashedRoute
- *
- * If no call is made to `Router::defaultRouteClass()`, the class used is
- * `Route` (`Cake\Routing\Route\Route`)
- *
- * Note that `Route` does not do any inflections on URLs which will result in
- * inconsistently cased URLs when used with `:plugin`, `:controller` and
- * `:action` markers.
- *
- * Cache: Routes are cached to improve performance, check the RoutingMiddleware
- * constructor in your `src/Application.php` file to change this behavior.
- *
- */
 Router::defaultRouteClass(DashedRoute::class);
 
-Router::scope(
-    '/articles',
-    ['controller' => 'Articles'],
-    function($routes) {
-        $routes->connect('/tagged/*', ['action' => 'tags']);
-    }
+Router::scope('/articles', ['controller' => 'Articles'], function($routes) {
+  $routes->connect('/tagged/*', ['action' => 'tags']);
+  }
 );
 
 Router::scope('/', function (RouteBuilder $routes) {
-    // Register scoped middleware for in scopes.
-    $routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
-        'httpOnly' => true,
-    ]));
+  // Register scoped middleware for in scopes.
+  $routes->registerMiddleware('csrf', new CsrfProtectionMiddleware([
+    'httpOnly' => true,
+  ]));
 
     /*
      * Apply a middleware to the current route scope.
@@ -97,7 +73,104 @@ Router::scope('/', function (RouteBuilder $routes) {
      * routes you want in your application.
      */
     $routes->fallbacks(DashedRoute::class);
+
+    // home:_action   /:action   {"action":"index","controller":"Home","plugin":null}
+    $routes->connect('/:action', ['controller' => 'Home']);
 });
+
+// routes.php
+Router::scope('/', function ($routes) {
+    $routes->connect(
+        '/blog/:id-:slug', // 例えば /blog/3-CakePHP_Rocks
+        ['controller' => 'Blogs', 'action' => 'view']
+    )
+    // 関数に引数を渡すためのルーティングテンプレートの中で、ルート要素を定義します。
+    // テンプレートの中で、ルート要素を定義します。
+    // ":id" をアクション内の $articleId にマップします。
+    ->setPass(['id', 'slug'])
+    // `id` が一致するパターンを定義します。
+    ->setPatterns([
+        'id' => '[0-9]+',
+    ]);
+});
+
+// 名前付きでルートを接続
+$routes->connect(
+    '/login',
+    ['controller' => 'Users', 'action' => 'login'],
+    ['_name' => 'login']
+);
+
+// HTTP メソッド指定でルートを命名 (3.5.0 以降)
+$routes->post(
+    '/logout',
+    ['controller' => 'Users', 'action' => 'logout'],
+    'logout'
+);
+
+// 名前付きルートで URL の生成
+$url = Router::url(['_name' => 'logout']);
+
+// クエリー文字列引数付きの
+// 名前付きルートで URL の生成
+$url = Router::url(['_name' => 'login', 'username' => 'jimmy']);
+
+Router::scope('/api', ['_namePrefix' => 'api:'], function ($routes) {
+    // このルートの名前は `api:ping` になります。
+    $routes->get('/ping', ['controller' => 'Pings'], 'ping');
+});
+// ping ルートのための URL を生成
+Router::url(['_name' => 'api:ping']);
+
+// plugin() で namePrefix を使用
+Router::plugin('Contacts', ['_namePrefix' => 'contacts:'], function ($routes) {
+    // ルートを接続。
+});
+
+// または、 prefix() で
+Router::prefix('Admin', ['_namePrefix' => 'admin:'], function ($routes) {
+    // ルートを接続。
+});
+
+Router::scope('/', function ($routes) {
+    // 3.5.0 より前は `extensions()` を使用
+    $routes->setExtensions(['json']);
+    $routes->resources('Recipes');
+});
+
+Router::scope('/api', function ($routes) {
+    $routes->resources('Articles', function ($routes) {
+        $routes->resources('Comments');
+    });
+});
+
+$routes->resources('Articles', [
+    'only' => ['index', 'view']
+]);
+
+$routes->resources('Articles', [
+    'actions' => ['update' => 'put', 'create' => 'add']
+]);
+
+$routes->resources('Articles', [
+    'map' => [
+        'deleteAll' => [
+            'action' => 'deleteAll',
+            'method' => 'DELETE'
+        ]
+    ]
+]);
+
+$routes->resources('Articles', [
+    'map' => [
+        'updateAll' => [
+            'action' => 'updateAll',
+            'method' => 'DELETE',
+            'path' => '/update_many'
+        ],
+    ]
+]);
+// これは /articles/update_many に接続します。
 
 /*
  * If you need a different set of middleware or none at all,
