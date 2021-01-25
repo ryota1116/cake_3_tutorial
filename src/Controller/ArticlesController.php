@@ -9,6 +9,13 @@ class ArticlesController extends AppController
 {
   public function index()
   {
+    $this->loadComponent('Math');
+
+    $amount = $this->Math->doComplexOperation(1, 2);
+
+    $this->set('amount', $amount);
+
+
     $this->loadComponent('Paginator');
     $articles = $this->Paginator->paginate($this->Articles->find());
     $this->set(compact('articles'));
@@ -27,7 +34,6 @@ class ArticlesController extends AppController
     if ($this->request->is('post')) {
       $article = $this->Articles->patchEntity($article, $this->request->getData());
 
-      eval(\Psy\sh());
       $article->user_id = $this->Auth->user('id');
 
       if ($this->Articles->save($article)) {
